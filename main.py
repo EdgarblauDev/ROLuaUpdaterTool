@@ -41,7 +41,13 @@ def replace_lua_data(original, replacement):
 
 
 def backup(file: str, new_file: str):
-    if path.exists(file):
+    if path.exists(file) and path.exists(new_file):
+        logger.info(f"Deleting old backup file {new_file}")
+        clean(new_file)
+        logger.info(f"Creating a backup file of {file} into {new_file}")
+        rename(file, new_file)
+
+    if path.exists(file) and not path.exists(new_file):
         logger.info(f"Creating a backup file of {file} into {new_file}")
         rename(file, new_file)
 
