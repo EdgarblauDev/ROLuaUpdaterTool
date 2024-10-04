@@ -3,16 +3,9 @@ import configparser
 import luadata
 from loguru import logger
 from pathlib import Path
-from src.parser import slpp
+from src.lupa_parser import parse_lua_file
 from src.decompile_lub import decompile_lub
 from src.lua_function import get_iteminfo_function
-
-
-def parse_lua(filename, encoding):
-    data = slpp.decode(Path(filename).read_text(encoding=encoding))
-    if 'tbl' in data:
-        return data['tbl']
-    return None
 
 
 def write_lua_function(filename, encoding):
@@ -84,8 +77,9 @@ def main(args):
     iteminfo_file = path.join(files_folder, decompiled_lua_filename)
     replacement_file = path.join(files_folder, replacement_lua_filename)
 
-    original_data = parse_lua(iteminfo_file, file_encoding)
-    replacement_data = parse_lua(replacement_file, file_encoding)
+    original_data = parse_lua_file(iteminfo_file, file_encoding)
+
+    replacement_data = parse_lua_file(replacement_file, file_encoding)
 
     updated_data = replace_lua_data(original_data, replacement_data)
 
