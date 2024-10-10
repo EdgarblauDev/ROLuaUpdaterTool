@@ -8,6 +8,17 @@ from src.decompile_lub import decompile_lub
 from src.lua_function import get_iteminfo_function
 
 
+item_metadata = [
+    'unidentifiedDisplayName',
+    'unidentifiedResourceName',
+    'identifiedDisplayName',
+    'identifiedResourceName',
+    'slotCount',
+    'ClassNum',
+    'costume'
+]
+
+
 def write_lua_function(filename, encoding):
     data = Path(filename)
     new_function = get_iteminfo_function()
@@ -16,21 +27,42 @@ def write_lua_function(filename, encoding):
         file.write(new_function)
 
 
-def write_lua(data, filename, encoding):
+def write_lua(data, filename, encoding, write_function=False):
     luadata.write(filename, data, encoding=encoding, indent="\t", prefix="tbl = ")
-    write_lua_function(filename, encoding)
+    if write_function is True:
+        write_lua_function(filename, encoding)
+
+
+def check_item_data(source, replacement):
+    for key in item_metadata:
+        if key in source and key in replacement and source[key] != replacement[key]:
+            return True
+    return False
+
+
+def update_item_data(source, replacement):
+    if check_item_data(source, replacement) is True:
+        logger.info(f"The following item needs to be updated: {replacement['identifiedDisplayName']}")
+        output = replacement.copy()
+        for key in item_metadata:
+            output[key] = source[key]
+        return output
+    return replacement
 
 
 def replace_lua_data(original, replacement):
     total_replacements = 0
+    new_replacement = replacement.copy()
 
     for index, content in replacement.items():
         logger.info(f"Replacing ItemID: {index}")
-        original[index] = content
+        new_item = update_item_data(original[index], content)
+        original[index] = new_item
+        new_replacement[index] = new_item
         total_replacements += 1
 
     logger.info(f"Total replaced items: {total_replacements}")
-    return original
+    return original, new_replacement
 
 
 def backup(file: str, new_file: str):
@@ -81,13 +113,18 @@ def main(args):
 
     replacement_data = parse_lua_file(replacement_file, file_encoding)
 
-    updated_data = replace_lua_data(original_data, replacement_data)
+    updated_data, updated_replacement = replace_lua_data(original_data, replacement_data)
 
     backup(path.join(game_folder, 'System', compiled_lub_filename),
            path.join(game_folder, 'System', f"{compiled_lub_filename}.bkp"))
 
     write_lua(updated_data,
               path.join(game_folder, 'System', compiled_lub_filename),
+              file_encoding,
+              write_function=True)
+
+    write_lua(updated_replacement,
+              path.join(files_folder, replacement_lua_filename),
               file_encoding)
 
     clean(path.join(files_folder, decompiled_lua_filename))
