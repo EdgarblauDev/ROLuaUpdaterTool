@@ -9,12 +9,9 @@ from src.lua_function import get_iteminfo_function
 
 
 item_metadata = [
-    'unidentifiedDisplayName',
     'unidentifiedResourceName',
-    'identifiedDisplayName',
     'identifiedResourceName',
     'slotCount',
-    'ClassNum',
     'costume'
 ]
 
