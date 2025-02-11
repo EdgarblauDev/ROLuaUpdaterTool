@@ -62,6 +62,23 @@ def replace_lua_data(original, replacement):
     return original, new_replacement
 
 
+def add_lua_data(original, items):
+    total_added = 0
+    new_items = items.copy()
+
+    for index, content in new_items.items():
+        logger.info(f"Checking ItemID: {index}")
+        if not index in original:
+            logger.info(f"Adding ItemID: {index}")
+            original[index] = content
+            total_added += 1
+        else:
+            logger.info(f"ItemID has been added by WP: {index}")
+
+    logger.info(f"Total added items: {total_added}")
+    return original
+
+
 def backup(file: str, new_file: str):
     if path.exists(file) and path.exists(new_file):
         logger.info(f"Deleting old backup file {new_file}")
@@ -86,6 +103,7 @@ def main(args):
         file_encoding = str(args['DEFAULT']['LuaEncoding'])
         files_folder = str(args['DEFAULT']['FilesFolder'])
         replacement_lua_filename = str(args['DEFAULT']['ReplacementLuaFile'])
+        newitems_lua_filename = str(args['DEFAULT']['NewItemsLuaFile'])
         decompiled_lua_filename = str(args['DEFAULT']['DecompiledLuaFile'])
 
         game_folder = path.normpath(str(args['GAMEFILES']['GameFolder']))
@@ -105,12 +123,17 @@ def main(args):
 
     iteminfo_file = path.join(files_folder, decompiled_lua_filename)
     replacement_file = path.join(files_folder, replacement_lua_filename)
+    newitems_file = path.join(files_folder, newitems_lua_filename)
 
     original_data = parse_lua_file(iteminfo_file, file_encoding)
 
     replacement_data = parse_lua_file(replacement_file, file_encoding)
 
+    newitems_data = parse_lua_file(newitems_file, file_encoding)
+
     updated_data, updated_replacement = replace_lua_data(original_data, replacement_data)
+
+    updated_data = add_lua_data(updated_data, newitems_data)
 
     backup(path.join(game_folder, 'System', compiled_lub_filename),
            path.join(game_folder, 'System', f"{compiled_lub_filename}.bkp"))

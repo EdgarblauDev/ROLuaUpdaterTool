@@ -5,6 +5,7 @@ def get_iteminfo_function():
 
 dofile("System/customeffects.lua")
 dofile("System/customsprites.lua")
+dofile("System/customweapon.lua")
 
 main = function()
     for ItemID, DESC in pairs(tbl) do
@@ -25,7 +26,17 @@ main = function()
 		  identifiedResourceName = DESC.identifiedResourceName;
 		end
 
-		result, msg = AddItem(ItemID, unidentifiedDisplayName, identifiedResourceName, DESC.identifiedDisplayName, identifiedResourceName, DESC.slotCount, DESC.ClassNum)		
+        --customweapon
+        local ClassNum = 0;
+
+        if customweapon[ItemID] ~= nil then
+            ClassNum = customweapon[ItemID];
+        else
+            ClassNum = DESC.ClassNum;
+        end
+        --customweapon code ends here
+
+		result, msg = AddItem(ItemID, unidentifiedDisplayName, identifiedResourceName, DESC.identifiedDisplayName, identifiedResourceName, DESC.slotCount, ClassNum)		
 		--customsprites code ends here
 
         if not result == true then
